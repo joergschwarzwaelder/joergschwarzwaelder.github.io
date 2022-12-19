@@ -1,0 +1,630 @@
+<html>
+  <head>
+    <!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+	const url='https://docs.google.com/spreadsheets/d/1MGQx3MVbI25O0zOf4paVb2KbNFCqp6rA9TccDrZT3uM/edit?usp=sharing';
+
+      google.charts.load('current', {'packages':['corechart','table']});
+      google.charts.setOnLoadCallback(load);
+	  var wallet='0xe5d7FcfF7ab197Dd9359ED3De8b2C7Fa42200b7B';
+	  var masterdata;
+	  var wallets;
+	  var data;
+
+	  var chart; var view; var options;
+	  var chart2; var view2; var options2;
+	  var chart3; var view3; var options3;
+	  var chart4; var view4; var options4;
+
+	  function load(){
+	    document.getElementById('walletid').value=wallet;
+        var opts = {sendMethod: 'auto' };
+        var query = new google.visualization.Query(url, opts);
+        query.setQuery('select F,E,count(E) group by F,E order by F');
+        query.send(load2);
+
+
+        var query2 = new google.visualization.Query(url, opts);
+        query2.setQuery('select E,count(F),F group by E,F order by F,E');
+        query2.send(drawChart2);
+        function floorDate(datetime) {
+          var newDate = new Date(datetime);
+          newDate.setHours(0);
+          newDate.setMinutes(-datetime.getTimezoneOffset());
+          newDate.setSeconds(0);
+          return newDate.toISOString().split('T')[0];
+        }
+        function setDataViewMultipleChart(view){
+          var def=[];
+          def.push(0);
+          for(let i=0;i<view.getNumberOfRows();i++){
+              def.push({ calc: function(dt,row){ return (row==i)?dt.getValue(row,1):null; }, role: 'data', type: 'number' });
+          }
+          view.setColumns(def);
+
+        }
+
+        function drawChart2(response) {
+          if (response.isError()) {
+            alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+            return;
+          }
+          var data = response.getDataTable();
+          view2=new google.visualization.DataView(data);
+          setDataViewMultipleChart(view2);
+          options2 = {'title':'Achievement completions', 'width':'100%', 'backgroundColor': { fill: 'transparent' }, chartArea: { top: 80 }, tooltip: { isHtml: true }, isStacked: true, legend: { position: 'none' } };
+          chart2 = new google.visualization.ColumnChart(document.getElementById('chart_div2'));
+          chart2.draw(view2, options2);
+        }
+
+        var query3 = new google.visualization.Query(url, opts);
+        query3.setQuery('select B,count(E) where E="started to play" group by B');
+        query3.send(drawChart3);
+        function drawChart3(response) {
+          if (response.isError()) {
+            alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+            return;
+          }
+          var data = response.getDataTable();
+          data=google.visualization.data.group(data,[{
+            column: 0,
+            modifier: floorDate,
+            type: 'string'
+          }],[{
+            column: 1,
+            aggregation: google.visualization.data.count,
+            type: 'number'
+          }]);
+          view3=new google.visualization.DataView(data);
+		  setDataViewMultipleChart(view3);
+          options3 = {'title':'Players started', 'width':'100%', 'backgroundColor': { fill: 'transparent' }, chartArea: { top: 80 }, tooltip: { isHtml: true }, isStacked: true, legend: { position: 'none' } };
+          chart3 = new google.visualization.ColumnChart(document.getElementById('chart_div3'));
+          chart3.draw(view3, options3);
+		}
+
+        var query4 = new google.visualization.Query(url, opts);
+        query4.setQuery('select B,count(E) group by B order by B desc');
+        query4.send(drawChart4);
+        function drawChart4(response) {
+          if (response.isError()) {
+            alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+            return;
+          }
+          var data = response.getDataTable();
+          data=google.visualization.data.group(data,[{
+            column: 0,
+            modifier: floorDate,
+            type: 'string'
+          }],[{
+            column: 1,
+            aggregation: google.visualization.data.count,
+            type: 'number'
+          }]);
+          view4=new google.visualization.DataView(data);
+          setDataViewMultipleChart(view4);
+          options4 = {'title':'Achievements over Time', 'width':'100%', 'backgroundColor': { fill: 'transparent' }, chartArea: { top: 80 }, tooltip: { isHtml: true }, isStacked: true, legend: { position: 'none' }};
+          chart4 = new google.visualization.ColumnChart(document.getElementById('chart_div4'));
+          //chart4 = new google.visualization.Table(document.getElementById('chart_div4'));
+          chart4.draw(view4, options4);
+	    }
+      }
+
+  function load2(response){
+    if (response.isError()) {
+      alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+      return;
+	}
+    masterdata=response.getDataTable();
+    var opts = {sendMethod: 'auto' };
+    var query = new google.visualization.Query(url, opts);
+    query.setQuery('select C,count(C) group by C order by C');
+    query.send(load3);
+  }
+  function load3(response){
+    if (response.isError()) {
+      alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+      return;
+    }
+    wallets=response.getDataTable();
+
+    var opts = {sendMethod: 'auto' };
+    var query = new google.visualization.Query(url, opts);
+
+    if(wallet=='*'){
+      query.setQuery('select F,B,E,C');
+    }else{
+      query.setQuery('select F,B,E,C,D where C="'+wallet+'"');
+    }
+    query.send(drawChart);
+  }
+  function drawChart(response) {
+    if (response.isError()) {
+      alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+      return;
+    }
+    data = response.getDataTable();
+	if(wallet=='*'){
+	  document.getElementById('statement').classList.add('inactive');
+	  document.getElementById('statementimg').classList.add('inactive');
+	}else{
+	  document.getElementById('statement').classList.remove('inactive');
+	  document.getElementById('statementimg').classList.remove('inactive');
+	}
+    var achievements=[];
+    for(var i=0;i<data.getNumberOfRows();i++){
+      achievements[data.getValue(i,0)]=1;
+    }
+    if((achievements[5]==1)&&(achievements[6]==1)&&(achievements[7]==1))document.getElementById('tolkienring').classList.remove('inactive');
+    else document.getElementById('tolkienring').classList.add('inactive');
+	if((achievements[8]==1)&&(achievements[9]==1)&&(achievements[10]==1))document.getElementById('elfenring').classList.remove('inactive');
+	else document.getElementById('elfenring').classList.add('inactive');
+	if((achievements[11]==1)&&(achievements[12]==1)&&(achievements[13]==1)&&(achievements[14]==1)&&(achievements[15]==1)&&(achievements[17]==1))document.getElementById('webring').classList.remove('inactive');
+	else document.getElementById('webring').classList.add('inactive');
+	if((achievements[18]==1)&&(achievements[19]==1)&&(achievements[20]==1))document.getElementById('cloudring').classList.remove('inactive');
+	else document.getElementById('cloudring').classList.add('inactive');
+	if((achievements[22]==1)&&(achievements[23]==1)&&(achievements[26]==1))document.getElementById('brof').classList.remove('inactive');
+	else document.getElementById('brof').classList.add('inactive');
+	var dateTimeFormatter = new google.visualization.DateFormat({pattern: 'YYYY-MM-dd HH:mm:ss'});
+	data.setColumnProperty(1,"type","datetime");
+    dateTimeFormatter.format(data, 1);
+	view=new google.visualization.DataView(data);
+	setDataViewMultipleChart(view);
+	function setDataViewMultipleChart(view){
+	  var def=[];
+	  def.push(0);
+	  for(let i=0;i<masterdata.getNumberOfRows();i++){
+	  var zz=data.getFilteredRows([{ column: 0, value: i+1 }]);
+	  if(zz[0]!=undefined){
+	    def.push({ calc: function(dt,row){ return dt.getValue(row,0)==(i+1)?dt.getValue(row,1):null; }, role: 'data', type: 'datetime', label: masterdata.getValue(i,1).replace("Challenge completed: ","") });
+	    def.push({ calc: function(dt,row){ return dt.getFormattedValue(row,1)+"\n"+dt.getFormattedValue(row,2)+"\n"+dt.getFormattedValue(row,3); }, role: 'tooltip', type: 'string' } );
+	  }
+    }
+    view.setColumns(def);
+  }
+      options = {'title':'Achievements over time for '+wallet,
+	  'backgroundColor': { fill: 'transparent' } ,
+
+	  'legend': { 'textStyle': { 'fontSize': 11 } }, 'vAxis' : { 'direction': -1,
+	  'gridlines': { 'units': { days: { 'format': ['YYYY-MM-dd HH:mm']}, 'hours': { 'format': ['YYYY-MM-dd HH:mm'] }, 'minutes': { 'format': ['HH:mm:ss'] } , 'seconds': { 'format': ['HH:mm:ss'] }, 'milliseconds': { 'format': ['HH:mm:ss.SSS'] } }},
+	  'minorGridlines': { 'units': { days: { 'format': ['YYYY-MM-dd HH:mm']}, 'hours': { 'format': ['HH:mm'] }, 'minutes': { 'format': ['HH:mm:ss'] }, 'seconds': { 'format': ['HH:mm:ss'] }, 'milliseconds': { 'format': ['HH:mm:ss.SSS'] }}}},
+	                'annotation':
+					  { 1:
+					    { 'style' : 'line'
+						}
+					  },
+					  'hAxis': { 'gridlines': { 'count': 1 }, 'textPosition' : 'none' },
+					  'explorer': { 'actions': [ 'dragToZoom','rightClickToReset'], 'axis': 'vertical', 'keepInBounds': 'false', 'maxZoomIn': 10 },
+                     'width':'100%', height: '100%',
+                     chartArea: { width: '70%' , height:'100%', top: 50, left: 150 }, tooltip: { isHtml: true }  };
+    chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
+    chart.draw(view, options);
+  }
+</script>
+	<style>
+h1 {
+  margin-top: 30px;
+  --color1: #3ea582;
+  --color2: #ff4f67;
+  font-family: "Open Sans", sans-serif;
+  text-align: center;
+  font-size: 46px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color1),
+    var(--color1) 30px,
+    var(--color2) 30px,
+    var(--color2) 60px
+  );
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  animation: 40s linear 0s infinite move;
+}
+
+@keyframes move {
+  from {
+    background-position: 0px;
+  }
+  to {
+    background-position: 1000px;
+  }
+}
+
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #303030;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #508050;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #505050;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+  height: 100%;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.tabcontent {
+  animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+/* Go from zero to full opacity */
+@keyframes fadeEffect {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+
+body { background-color: #222222; color: #a0ffa0; overflow-x: hidden; overflow-y: hidden; margin: 0; margin-top: 0px; margin-left: 0px; background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); filter: drop-shadow(0 0 10px white);   font-family: "Open Sans", sans-serif; }
+input { background-color: #222222; color: #a0ffa0; }
+button.pager { margin: 2em; width: 50px; background-color: #338033; color: #a0ffa0; }
+button.tablinks { color: #a0ffa0; }
+div.google-visualization-tooltip > ul > li > span {
+  color: #a0ffa0 !important;
+}
+div.google-visualization-tooltip {
+  background-color: #338033;
+}
+
+.chartdiv{
+vertical-align:top; float: left;width:100%;flex: 5 1 80%;
+}
+.chartdiv text { fill: #a0ffa0 }
+
+.snow {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+}
+img.ring {
+  width: 40%;
+  height: auto;
+}
+td,th {
+  text-align: center;
+}
+
+img.ring { opacity: 1; filter: grayscale(0%); }
+img.ring.inactive { opacity: 0.3; filter: grayscale(100%); }
+
+img.marie{
+  transform:scaleX(-1);
+  z-index:20;
+  position:fixed;
+  top:0;right:0;
+}
+
+.slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 300px; /* Full-width */
+  height: 10px; /* Specified height */
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+  opacity: 1; /* Fully shown on mouse-over */
+   border-radius: 5px;
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  /* background: #33a033; */ /* Green background */
+  background-image: url('bauble.png');
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  cursor: pointer; /* Cursor on hover */
+  border-radius: 50%;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px; /* Set a specific slider handle width */
+  height: 25px; /* Slider handle height */
+  /* background: #33a033; */ /* Green background */
+  background-image: url('bauble.png');
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  cursor: pointer; /* Cursor on hover */
+  border-radius: 50%;
+}
+button.pager { display: inline; }
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: none; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #404040;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+  font-family: monospace;
+
+}
+.modal-content span{ margin: 0 auto; border-collapse: collapse; }
+.modal-content table{ margin: 0 auto; border-collapse: collapse; }
+.modal-content tr:nth-child(even){
+  background-color: #505050;
+}
+.modal-content td{ padding-left: 10px; padding-right: 10px; text-align: left; }
+.modal-content td.amount{ text-align: right; padding-right: 0; }
+
+/* The Close Button */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#statement {
+background-color:transparent;
+}
+#statement img.inactive { opacity: 0.3; filter: grayscale(100%); }
+#statement.inactive { disabled: disabled; }
+	</style>
+  </head>
+
+  <body style='display:flex;flex-flow:column;height:100%'>
+  <h1>Santa's Data Lake</h1>
+  <img class='marie' title="Bonjour, je m'appelle Marie!" src="/hen2.png">
+  <div style='display:flex;flex:0 0 auto' class='tab'>
+  <button class='tablinks' id='defaulttab' onclick='openTab(event,"analysis")'>Wallet Analysis</button>
+  <button class='tablinks' onclick='openTab(event,"milestones")'>Achievements/Type</button>
+  <button class='tablinks' onclick='openTab(event,"players")'>Players</button>
+  <button class='tablinks' onclick='openTab(event,"milestonestime")'>Achievements/Time</button>
+  </div>
+
+  <div id='analysis' class='tabcontent'>
+  <div style='flex 1 1 auto;'>
+  <span style='flex: 1 1 auto; font-size:x-large'>Wallet Address <font style='font-size:0.7em'>(or *)</font>:</span>
+    <span style='flex: 1 1 auto;'><button class='pager' id='prev'>&lt;&lt;</button><form style='display:inline' id='form'><input type='text' size='50' id='walletid' /></form><button class='pager' id='next'>&gt;&gt;</button>
+	<input style='flex: 1 1 auto' type='range' min='0' max='32' value='4' class='slider' id='myRange'><span>min. Achievements: </span><span id="minach">4</span></span>
+	</div>
+	    <div style='flex:1 1 auto;vertical-align:top; width: 70%;'>
+    <table>
+	<tr><th>Tolkien Ring</th><th>Elfen Ring</th><th>Web Ring</th><th>Cloud Ring</th><th>Burning Ring of Fire</th></tr>
+    <tr><td><img id="tolkienring" class='ring tolkienring inactive' src='https://github.com/joergschwarzwaelder/joergschwarzwaelder.github.io/raw/master/img/tolkien_ring.png' /></td>
+    <td><img id="elfenring" class='ring elfenring inactive' src='https://github.com/joergschwarzwaelder/joergschwarzwaelder.github.io/raw/master/img/elfen_ring.png' /></td>
+    <td><img id="webring" class='ring webring inactive' src='https://github.com/joergschwarzwaelder/joergschwarzwaelder.github.io/raw/master/img/web_ring.png' /></td>
+    <td><img id="cloudring" class='ring cloudring inactive' src='https://github.com/joergschwarzwaelder/joergschwarzwaelder.github.io/raw/master/img/cloud_ring.png' /></td>
+    <td><img id="brof" class='ring brof inactive' src='https://github.com/joergschwarzwaelder/joergschwarzwaelder.github.io/raw/master/img/brof.png' /></td>
+	<td style='padding-left:100px;'><button title='KringleCoin Statement' class='inactive' id='statement'><img id='statementimg' class='inactive' src='https://github.com/joergschwarzwaelder/joergschwarzwaelder.github.io/raw/master/img/kc.png'></button></td></tr>
+
+	<div id="myModal" class="modal">
+    <div class="modal-content">
+    <span class="close">&times;</span>
+    <p id='ktmstatement'>Some text in the Modal..</p>
+    </div>
+    </div>
+
+    </table>
+    </div>
+    <div id="chart_div" class='chartdiv'></div>
+	</div>
+	</div>
+	<div id='milestones' class='tabcontent'>
+	    <div id="chart_div2" class='chartdiv'></div>
+	</div>
+	<div id='players' class='tabcontent'>
+	    <div id="chart_div3" class='chartdiv'></div>
+	</div>
+	<div id='milestonestime' class='tabcontent'>
+	    <div id="chart_div4" class='chartdiv'></div>
+	</div>
+	    <script>
+		function findwalletindex(w){
+        for(var i=0;i<wallets.getNumberOfRows();i++){
+          if((w.localeCompare(wallets.getValue(i,0))<=0)&&(wallets.getValue(i,1)>=document.getElementById('myRange').value)){
+            return i;
+          }
+        }
+		return 0;
+
+		}
+	function findnextwallet(z){
+	  for(var i=1;i<=wallets.getNumberOfRows();i++){
+          if(wallets.getValue((z+i)%wallets.getNumberOfRows(),1)>=document.getElementById('myRange').value){
+		    return (z+i)%wallets.getNumberOfRows();
+		  }
+	  }
+	}
+	function findprevwallet(z){
+	  for(var i=1;i<=wallets.getNumberOfRows();i++){
+          if(wallets.getValue((wallets.getNumberOfRows()+z-i)%wallets.getNumberOfRows(),1)>=document.getElementById('myRange').value){
+		    return (wallets.getNumberOfRows()+z-i)%wallets.getNumberOfRows();
+		  }
+	  }
+	}
+      (function (){
+	  var slider=document.getElementById('myRange');
+	  var output=document.getElementById('minach');
+	  output.innerHTML=slider.value;
+	  slider.oninput=function(){
+	    output.innerHTML=slider.value;
+      }
+      document.getElementById('form').addEventListener('submit', function(e){
+	    if(document.getElementById('walletid').value=='*'){
+		  wallet='*';
+		  load();
+		  e.preventDefault();
+		  return;
+		}
+	    var z=findwalletindex(document.getElementById('walletid').value);
+		if(wallets.getValue(z,0)!=document.getElementById('walletid').value){ z--; z=findnextwallet(z); }
+		wallet=wallets.getValue(z,0);
+		load();
+		e.preventDefault();
+      });
+      document.getElementById('next').addEventListener('click', function(e){
+	    var z=findwalletindex(document.getElementById('walletid').value);
+		if(wallets.getValue(z,0)!=document.getElementById('walletid').value)z--;
+		z=findnextwallet(z);
+		wallet=wallets.getValue(z,0);
+		load();
+		e.preventDefault();
+		return;
+      });
+      document.getElementById('prev').addEventListener('click', function(e){
+	    var z=findwalletindex(document.getElementById('walletid').value);
+		z=findprevwallet(z);
+		wallet=wallets.getValue(z,0);
+		load();
+		e.preventDefault();
+		return;
+      });
+
+	  setTimeout(function(){
+	    for(var i=1;i<=50;i++){
+    var sheet=document.createElement("style"); sheet.type="text/css";
+    var rx=Math.random()*1000000*0.0001;
+    var ro=(Math.random()*200000-100000)*0.0001;
+    var rxe=rx+ro;
+    var rxey=rx+(ro/2);
+    var ryt=(Math.random()*50000+30000)/100000*100;
+    var ryy=ryt;
+    var rs=Math.random()*10000*0.0001;
+    var op=Math.random()*10000*0.0001;
+    var fdu=Math.random()*20+10;
+    var fde=Math.random()*30;
+    sheet.innerText=".snow:nth-child("+i+") { opacity: 0.5971; transform: translate("+rx+"vw, -10px) scale("+rs+"); animation: fall-"+i+" "+fdu+"s -"+fde+"s linear infinite; } @keyframes fall-"+i+" { "+ryt+"% { transform: translate("+rxe+"vw, "+ryy+"vh) scale("+rs+"); } to { transform: translate("+rxey+"vw, 100vh) scale("+rs+"); } } ";
+    document.head.appendChild(sheet);
+    const s=document.createElement("div");
+    s.classList.add("snow");
+    document.body.insertBefore(s,document.body.firstChild);
+//    document.body.appendChild(s);
+  }
+  },1000);
+document.getElementById("defaulttab").click();
+
+   var modal = document.getElementById("myModal");
+
+// Get the button that opens the modal
+var btn = document.getElementById("statement");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks on the button, open the modal
+btn.onclick = function() {
+  if(wallet=='*')return;
+  var stmt="<table><tr><td colspan='4'>KringleCoin Statement for "+wallet+"</td></tr><tr><td colspan='4'>&nbsp;</td></tr>"; var amount=0;
+  for(var i=0;i<data.getNumberOfRows();i++){
+    amount+=data.getValue(i,4);
+    if(data.getValue(i,4)!=0){
+	  var a=data.getValue(i,1);
+	  a.setMinutes(a.getMinutes()-a.getTimezoneOffset());
+      stmt+="<tr><td>"+a.toISOString()+"</td><td>"+data.getValue(i,2)+"</td><td class='amount'>"+data.getValue(i,4)+"</td><td>KC</td></tr>";
+    }
+  }
+  stmt+="<tr style='border-top: 1px solid #a0ffa0'><td></td><td></td><td class='amount'>"+amount+"</td><td>KC</td></tr>";
+  stmt+="</table>";
+  document.getElementById('ktmstatement').innerHTML=stmt;
+  modal.style.display = "block";
+
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+  modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+
+
+
+      })();
+
+	  function openTab(evt, tabName) {
+  var i, tabcontent, tablinks;
+
+  // Get all elements with class="tabcontent" and hide them
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  // Get all elements with class="tablinks" and remove the class "active"
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+
+  document.getElementById(tabName).style.display = "flex";
+  evt.currentTarget.className += " active";
+  if(chart)chart.draw(view, options);
+  if(chart2)chart2.draw(view2, options2);
+  if(chart3)chart3.draw(view3, options3);
+  if(chart4)chart4.draw(view4, options4);
+}
+ window.addEventListener('resize',function(){
+   if(chart)chart.draw(view, options);
+   if(chart2)chart2.draw(view2, options2);
+   if(chart3)chart3.draw(view3, options3);
+});  
+
+    </script>
+
+  </body>
+</html>
