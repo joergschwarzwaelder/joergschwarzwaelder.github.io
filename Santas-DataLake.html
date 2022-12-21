@@ -132,9 +132,9 @@
     var query = new google.visualization.Query(url, opts);
 
     if(wallet=='*'){
-      query.setQuery('select F,B,E,C');
+      query.setQuery('select F,B,E,C,A');
     }else{
-      query.setQuery('select F,B,E,C,D where C="'+wallet+'"');
+      query.setQuery('select F,B,E,C,A,D where C="'+wallet+'"');
     }
     query.send(drawChart);
   }
@@ -177,7 +177,7 @@
 	  var zz=data.getFilteredRows([{ column: 0, value: i+1 }]);
 	  if(zz[0]!=undefined){
 	    def.push({ calc: function(dt,row){ return dt.getValue(row,0)==(i+1)?dt.getValue(row,1):null; }, role: 'data', type: 'datetime', label: masterdata.getValue(i,1).replace("Challenge completed: ","") });
-	    def.push({ calc: function(dt,row){ return dt.getFormattedValue(row,1)+"\n"+dt.getFormattedValue(row,2)+"\n"+dt.getFormattedValue(row,3); }, role: 'tooltip', type: 'string' } );
+	    def.push({ calc: function(dt,row){ return dt.getFormattedValue(row,1)+"\n"+dt.getFormattedValue(row,2)+"\n"+dt.getFormattedValue(row,3)+"\nBlock: "+dt.getFormattedValue(row,4); }, role: 'tooltip', type: 'string' } );
 	  }
     }
     view.setColumns(def);
@@ -568,11 +568,11 @@ btn.onclick = function() {
   if(wallet=='*')return;
   var stmt="<table><tr><td colspan='4'>KringleCoin Statement for "+wallet+"</td></tr><tr><td colspan='4'>&nbsp;</td></tr>"; var amount=0;
   for(var i=0;i<data.getNumberOfRows();i++){
-    amount+=data.getValue(i,4);
+    amount+=data.getValue(i,5);
     if(data.getValue(i,4)!=0){
 	  var a=data.getValue(i,1);
 	  a.setMinutes(a.getMinutes()-a.getTimezoneOffset());
-      stmt+="<tr><td>"+a.toISOString()+"</td><td>"+data.getValue(i,2)+"</td><td class='amount'>"+data.getValue(i,4)+"</td><td>KC</td></tr>";
+      stmt+="<tr><td>"+a.toISOString()+"</td><td>"+data.getValue(i,2)+"</td><td class='amount'>"+data.getValue(i,5)+"</td><td>KC</td></tr>";
     }
   }
   stmt+="<tr style='border-top: 1px solid #a0ffa0'><td></td><td></td><td class='amount'>"+amount+"</td><td>KC</td></tr>";
