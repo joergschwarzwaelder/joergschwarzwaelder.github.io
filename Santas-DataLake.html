@@ -127,6 +127,9 @@
       return;
     }
     wallets=response.getDataTable();
+    var slider=document.getElementById('myRange');
+	slider.dispatchEvent(new Event('input'));
+
 
     var opts = {sendMethod: 'auto' };
     var query = new google.visualization.Query(url, opts);
@@ -500,6 +503,12 @@ background-color:transparent;
 	  output.innerHTML=slider.value;
 	  slider.oninput=function(){
 	    output.innerHTML=slider.value;
+		if(wallets){
+		  var filter=wallets.getFilteredRows([ { column: 1, minValue: slider.value } ]);
+		  output.innerHTML=slider.value+" ("+filter.length+")";
+	    }else{
+		  output.innerHTML=slider.value;
+		}
       }
       document.getElementById('form').addEventListener('submit', function(e){
 	    if(document.getElementById('walletid').value=='*'){
