@@ -179,7 +179,7 @@
 	  for(let i=0;i<masterdata.getNumberOfRows();i++){
 	  var zz=data.getFilteredRows([{ column: 0, value: i+1 }]);
 	  if(zz[0]!=undefined){
-	    def.push({ calc: function(dt,row){ return dt.getValue(row,0)==(i+1)?dt.getValue(row,1):null; }, role: 'data', type: 'datetime', label: masterdata.getValue(i,1).replace("Challenge completed: ","") });
+	    def.push({ calc: function(dt,row){ return dt.getValue(row,0)==(i+1)?dt.getValue(row,1):null; }, role: 'data', type: 'datetime', label: masterdata.getValue(i+1,1).replace("Challenge completed: ","") });
 	    def.push({ calc: function(dt,row){ return dt.getFormattedValue(row,1)+"\n"+dt.getFormattedValue(row,2)+"\n"+dt.getFormattedValue(row,3)+"\nBlock: "+dt.getFormattedValue(row,4); }, role: 'tooltip', type: 'string' } );
 	  }
     }
